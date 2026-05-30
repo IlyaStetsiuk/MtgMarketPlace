@@ -18,6 +18,15 @@ const io = new Server(httpServer, {
 setupSocket(io);
 startAuctionExpiryJob();
 
+// Safety nets so a single failed outbound request (e.g. an upstream API
+// hiccup) can never take the whole server down.
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+
 httpServer.listen(env.PORT, () => {
   console.log(`[server] running on http://localhost:${env.PORT}`);
 });

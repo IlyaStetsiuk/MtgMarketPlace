@@ -1,4 +1,6 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { LRUCache } from 'lru-cache';
 
 const BASE = 'https://api.scryfall.com';
@@ -13,7 +15,12 @@ async function get<T extends object>(path: string): Promise<T> {
   if (cached) return cached as T;
 
   const { data } = await axios.get<T>(`${BASE}${path}`, {
-    headers: { 'User-Agent': 'MTGMarketplace/1.0' },
+    headers: { 'User-Agent': 'MTGMarketplace/1.0', Accept: 'application/json' },
+    timeout: 8000,
+    // Avoid a keep-alive socket lingering after an abrupt upstream close,
+    // which can otherwise surface as an unhandled socket 'error' event.
+    httpAgent: new http.Agent({ keepAlive: false }),
+    httpsAgent: new https.Agent({ keepAlive: false }),
   });
   cache.set(path, data);
   return data;
