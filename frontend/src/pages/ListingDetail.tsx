@@ -1,11 +1,14 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { listingsApi } from '../api/listings.api';
+import { messagesApi } from '../api/messages.api';
+import { useAuth } from '../context/AuthContext';
 import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
 import SellerRating from '../components/reviews/SellerRating';
-import { Sparkles, ChevronLeft, Globe } from 'lucide-react';
+import { Sparkles, ChevronLeft, Globe, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
+import Button from '../components/ui/Button';
 
 const CONDITION_LABELS: Record<string, string> = {
   MINT: 'Mint', NEAR_MINT: 'Near Mint', EXCELLENT: 'Excellent', GOOD: 'Good',
@@ -14,14 +17,25 @@ const CONDITION_LABELS: Record<string, string> = {
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
     queryFn: () => listingsApi.getOne(id!),
     enabled: !!id,
   });
 
+  const contactMutation = useMutation({
+    mutationFn: () =>
+      messagesApi.startConversation({ otherUserId: listing!.sellerId, listingId: id }),
+    onSuccess: (conv) => navigate(`/messages/${conv.id}`),
+  });
+
   if (isLoading) return <div className="flex items-center justify-center py-32"><Spinner size={40} /></div>;
   if (error || !listing) return <div className="text-center py-32 text-slate-500">Listing not found</div>;
+
+  const canContact = user && user.id !== listing.sellerId && listing.status === 'ACTIVE';
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -86,9 +100,20 @@ export default function ListingDetail() {
 
           <SellerRating seller={listing.seller as Parameters<typeof SellerRating>[0]['seller']} />
 
-          <div className="card-surface p-4 text-center text-slate-500 text-sm">
-            Contact the seller via their profile to complete the purchase.
-          </div>
+          {canContact ? (
+            <Button
+              onClick={() => contactMutation.mutate()}
+              disabled={contactMutation.isPending}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <MessageSquare size={16} />
+              {contactMutation.isPending ? 'Opening chat…' : 'Contact Seller'}
+            </Button>
+          ) : !user ? (
+            <div className="card-surface p-4 text-center text-slate-500 text-sm">
+              <Link to="/login" className="text-gold hover:text-gold-light">Sign in</Link> to contact the seller.
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

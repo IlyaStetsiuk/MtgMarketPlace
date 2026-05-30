@@ -6,6 +6,8 @@ import ListingDetail from './pages/ListingDetail';
 import AuctionDetail from './pages/AuctionDetail';
 import SellerProfile from './pages/SellerProfile';
 import CreateListing from './pages/CreateListing';
+import MessagesPage from './pages/MessagesPage';
+import ConversationPage from './pages/ConversationPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -35,6 +37,14 @@ export default function App() {
         <Route
           path="dashboard/*"
           element={<PrivateRoute><Dashboard /></PrivateRoute>}
+        />
+        <Route
+          path="messages"
+          element={<PrivateRoute><MessagesPage /></PrivateRoute>}
+        />
+        <Route
+          path="messages/:id"
+          element={<PrivateRoute><ConversationPage /></PrivateRoute>}
         />
       </Route>
     </Routes>

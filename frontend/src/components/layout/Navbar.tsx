@@ -1,7 +1,8 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Layers, Search, Plus, LogOut, LayoutDashboard, Gavel } from 'lucide-react';
+import { Layers, Search, Plus, LogOut, LayoutDashboard, Gavel, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import NotificationBell from '../ui/NotificationBell';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -55,6 +56,10 @@ export default function Navbar() {
                   List Card
                 </Button>
               </Link>
+              <Link to="/messages" className="btn-ghost" aria-label="Messages">
+                <MessageSquare size={18} />
+              </Link>
+              <NotificationBell />
               <Link to="/dashboard" className="btn-ghost flex items-center gap-1.5 text-sm">
                 <LayoutDashboard size={15} />
                 <span className="hidden md:block">{user.username}</span>

@@ -1,6 +1,8 @@
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { auctionsApi } from '../api/auctions.api';
+import { messagesApi } from '../api/messages.api';
+import { useAuth } from '../context/AuthContext';
 import { useAuctionSocket } from '../hooks/useAuctionSocket';
 import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
@@ -8,7 +10,8 @@ import Countdown from '../components/ui/Countdown';
 import BidForm from '../components/auctions/BidForm';
 import BidHistory from '../components/auctions/BidHistory';
 import SellerRating from '../components/reviews/SellerRating';
-import { Sparkles, ChevronLeft, Globe, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import Button from '../components/ui/Button';
+import { Sparkles, ChevronLeft, Globe, Clock, TrendingUp, AlertCircle, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -18,6 +21,8 @@ const CONDITION_LABELS: Record<string, string> = {
 
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: auction, isLoading, error } = useQuery({
     queryKey: ['auction', id],
@@ -27,12 +32,25 @@ export default function AuctionDetail() {
 
   useAuctionSocket(id);
 
+  const msgMutation = useMutation({
+    mutationFn: (otherUserId: string) =>
+      messagesApi.startConversation({ otherUserId, auctionId: id }),
+    onSuccess: (conv) => navigate(`/messages/${conv.id}`),
+  });
+
   if (isLoading) return <div className="flex items-center justify-center py-32"><Spinner size={40} /></div>;
   if (error || !auction) return <div className="text-center py-32 text-slate-500">Auction not found</div>;
 
   const isActive = auction.status === 'ACTIVE';
   const currentPrice = auction.currentBid ?? auction.startingPrice;
   const bidCount = auction._count?.bids ?? auction.bids?.length ?? 0;
+  const isEnded = auction.status === 'ENDED';
+  const isSeller = user?.id === auction.sellerId;
+  const isWinner = user?.id === auction.winnerId;
+
+  const showMsgSeller = isEnded && !isSeller && isWinner && user;
+  const showMsgWinner = isEnded && isSeller && auction.winnerId && user;
+  const showContactSeller = isActive && !isSeller && user;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -135,6 +153,39 @@ export default function AuctionDetail() {
 
           {/* Bid form */}
           <BidForm auction={auction} />
+
+          {/* Message buttons for ended auctions */}
+          {showMsgSeller && (
+            <Button
+              onClick={() => msgMutation.mutate(auction.sellerId)}
+              disabled={msgMutation.isPending}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <MessageSquare size={16} />
+              {msgMutation.isPending ? 'Opening chat…' : 'Message Seller'}
+            </Button>
+          )}
+          {showMsgWinner && (
+            <Button
+              onClick={() => msgMutation.mutate(auction.winnerId!)}
+              disabled={msgMutation.isPending}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <MessageSquare size={16} />
+              {msgMutation.isPending ? 'Opening chat…' : 'Message Winner'}
+            </Button>
+          )}
+          {showContactSeller && (
+            <Button
+              variant="ghost"
+              onClick={() => msgMutation.mutate(auction.sellerId)}
+              disabled={msgMutation.isPending}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <MessageSquare size={16} />
+              {msgMutation.isPending ? 'Opening chat…' : 'Ask Seller a Question'}
+            </Button>
+          )}
 
           <SellerRating seller={auction.seller} />
 

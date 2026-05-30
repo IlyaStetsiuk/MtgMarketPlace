@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { io } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSocket } from '../context/SocketContext';
 import { Auction, Bid } from '../types/api';
 
 interface BidNewEvent {
@@ -22,16 +22,15 @@ interface AuctionExtendedEvent {
 }
 
 export function useAuctionSocket(auctionId: string | undefined) {
+  const socket = useSocket();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!auctionId) return;
-
-    const socket = io({ withCredentials: true });
+    if (!auctionId || !socket) return;
 
     socket.emit('join:auction', auctionId);
 
-    socket.on('bid:new', (event: BidNewEvent) => {
+    const onBidNew = (event: BidNewEvent) => {
       queryClient.setQueryData<Auction>(['auction', auctionId], (old) => {
         if (!old) return old;
         return {
@@ -43,25 +42,31 @@ export function useAuctionSocket(auctionId: string | undefined) {
           _count: { bids: (old._count?.bids ?? 0) + 1 },
         };
       });
-    });
+    };
 
-    socket.on('auction:extended', (event: AuctionExtendedEvent) => {
+    const onExtended = (event: AuctionExtendedEvent) => {
       queryClient.setQueryData<Auction>(['auction', auctionId], (old) => {
         if (!old) return old;
         return { ...old, endsAt: event.endsAt, extensionCount: event.extensionCount };
       });
-    });
+    };
 
-    socket.on('auction:ended', (event: AuctionEndedEvent) => {
+    const onEnded = (event: AuctionEndedEvent) => {
       queryClient.setQueryData<Auction>(['auction', auctionId], (old) => {
         if (!old) return old;
         return { ...old, status: 'ENDED', winnerId: event.winnerId ?? undefined, currentBid: event.finalBid ?? old.currentBid };
       });
-    });
+    };
+
+    socket.on('bid:new', onBidNew);
+    socket.on('auction:extended', onExtended);
+    socket.on('auction:ended', onEnded);
 
     return () => {
       socket.emit('leave:auction', auctionId);
-      socket.disconnect();
+      socket.off('bid:new', onBidNew);
+      socket.off('auction:extended', onExtended);
+      socket.off('auction:ended', onEnded);
     };
-  }, [auctionId, queryClient]);
+  }, [auctionId, socket, queryClient]);
 }

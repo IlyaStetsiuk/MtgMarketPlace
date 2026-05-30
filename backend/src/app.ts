@@ -11,13 +11,13 @@ import auctionsRoutes from './routes/auctions.routes';
 import bidsRoutes from './routes/bids.routes';
 import reviewsRoutes from './routes/reviews.routes';
 import scryfallRoutes from './routes/scryfall.routes';
+import messagesRoutes from './routes/messages.routes';
+import notificationsRoutes from './routes/notifications.routes';
 
 const isProd = process.env.NODE_ENV === 'production';
 
 const app = express();
 
-// In production the frontend is served from the same origin, so reflect the
-// request origin; in dev allow the Vite dev server.
 app.use(cors({ origin: isProd ? true : env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -31,8 +31,9 @@ app.use('/api/auctions', auctionsRoutes);
 app.use('/api/bids', bidsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/scryfall', scryfallRoutes);
+app.use('/api/conversations', messagesRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
-// Serve the built React app and fall back to index.html for client routes.
 if (isProd) {
   const clientDir = path.join(__dirname, '../../frontend/dist');
   app.use(express.static(clientDir));

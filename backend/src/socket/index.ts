@@ -28,16 +28,27 @@ export function setupSocket(io: Server) {
   });
 
   io.on('connection', (socket) => {
+    const userId = (socket.data as { userId?: string }).userId;
+
+    // Authenticated users join their personal room for notifications
+    if (userId) {
+      socket.join(`user:${userId}`);
+    }
+
     socket.on('join:auction', (auctionId: string) => {
-      if (typeof auctionId === 'string') {
-        socket.join(`auction:${auctionId}`);
-      }
+      if (typeof auctionId === 'string') socket.join(`auction:${auctionId}`);
     });
 
     socket.on('leave:auction', (auctionId: string) => {
-      if (typeof auctionId === 'string') {
-        socket.leave(`auction:${auctionId}`);
-      }
+      if (typeof auctionId === 'string') socket.leave(`auction:${auctionId}`);
+    });
+
+    socket.on('join:conversation', (convId: string) => {
+      if (typeof convId === 'string') socket.join(`conv:${convId}`);
+    });
+
+    socket.on('leave:conversation', (convId: string) => {
+      if (typeof convId === 'string') socket.leave(`conv:${convId}`);
     });
   });
 }

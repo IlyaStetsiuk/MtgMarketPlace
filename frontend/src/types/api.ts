@@ -100,3 +100,38 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  sender: Pick<User, 'id' | 'username'>;
+  content: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  user1Id: string;
+  user1: Pick<User, 'id' | 'username' | 'averageRating'>;
+  user2Id: string;
+  user2: Pick<User, 'id' | 'username' | 'averageRating'>;
+  auctionId?: string;
+  listingId?: string;
+  lastMsgAt?: string;
+  createdAt: string;
+  messages?: Message[];
+  unreadCount?: number;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  link?: string;
+  readAt: string | null;
+  createdAt: string;
+}

@@ -17,3 +17,11 @@ export function emitAuctionEnded(auctionId: string, data: unknown) {
 export function emitAuctionExtended(auctionId: string, data: unknown) {
   _io?.to(`auction:${auctionId}`).emit('auction:extended', data);
 }
+
+export function emitToUser(userId: string, event: string, data: unknown) {
+  _io?.to(`user:${userId}`).emit(event, data);
+}
+
+export function emitToConversation(convId: string, data: unknown) {
+  _io?.to(`conv:${convId}`).emit('message:new', data);
+}
