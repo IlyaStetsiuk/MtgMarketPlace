@@ -9,7 +9,10 @@ import { env } from './config/env';
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
-  cors: { origin: env.FRONTEND_URL, credentials: true },
+  cors: {
+    origin: process.env.NODE_ENV === 'production' ? true : env.FRONTEND_URL,
+    credentials: true,
+  },
 });
 
 setupSocket(io);

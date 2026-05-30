@@ -1,0 +1,28 @@
+# Render Blueprint — deploys the MTG Marketplace as a single web service.
+# The Express backend serves the built React frontend on the same origin,
+# so the whole app (incl. real-time auction bids) runs from one URL.
+#
+# To deploy:
+#   1. Push this repo to GitHub (already done).
+#   2. Go to https://dashboard.render.com → New → Blueprint.
+#   3. Connect this repository and select this branch.
+#   4. Render reads this file, creates the service, and deploys.
+#   5. Open the generated *.onrender.com URL on your phone.
+services:
+  - type: web
+    name: mtg-marketplace
+    runtime: node
+    plan: free
+    branch: claude/mtg-marketplace-auction-Cl1nQ
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DATABASE_URL
+        value: file:./dev.db
