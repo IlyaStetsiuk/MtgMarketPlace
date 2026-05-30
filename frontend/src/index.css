@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-obsidian-dark text-slate-200;
+    background-image:
+      radial-gradient(ellipse at 15% 50%, rgba(200, 155, 60, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 85% 20%, rgba(99, 60, 180, 0.04) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c89b3c33 transparent;
+  }
+
+  *::-webkit-scrollbar { width: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #c89b3c33; border-radius: 3px; }
+}
+
+@layer components {
+  .card-surface {
+    @apply bg-obsidian border border-slate-700/50 rounded-xl;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5 hover:-translate-y-0.5;
+  }
+
+  .btn-primary {
+    @apply bg-gold hover:bg-gold-light text-obsidian-dark font-semibold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-obsidian-light hover:bg-obsidian text-slate-200 border border-slate-700 hover:border-gold/40 px-5 py-2.5 rounded-lg transition-colors;
+  }
+
+  .btn-ghost {
+    @apply text-slate-400 hover:text-gold px-3 py-1.5 rounded-lg transition-colors;
+  }
+
+  .input-field {
+    @apply w-full bg-obsidian-dark border border-slate-700 text-slate-200 placeholder-slate-500 rounded-lg px-3 py-2.5 focus:outline-none focus:border-gold/60 transition-colors;
+  }
+
+  .badge-foil {
+    @apply text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/30;
+  }
+
+  .condition-badge {
+    @apply text-xs px-2 py-0.5 rounded font-medium;
+  }
+
+  .auction-glow {
+    @apply shadow-lg shadow-gold/10;
+  }
+}
